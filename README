@@ -1,0 +1,16 @@
+a set of tools working for Linux process/kill
+=======================
+1. kill_old_process.sh:   to kill long-term (CPU time larger than some value) process
+   <usage>
+    kill_old_process.sh [-f]  <ps_aux_grep_pattern>  <time_criterion_seconds> 
+    -f: no prompt will be shown (force kill)
+    <ps_aux_grep_pattern>: the pattern used to grep process (ps aux |grep "$ps_aux_grep_pattern")
+    <time_criterion_seconds>: the minimal time (in seconds) to filter the process
+=======================
+2. kill_pstree.sh: to kill process-tree (kill its sub-process first)
+   <usage>
+   kill_pstree.sh [-f] <ps_elf_grep_pattern> [<username>]
+   -f: no prompt will be shown
+   <ps_elf_grep_pattern>: the pattern used to grep process 
+   <username>: the username to filter process (i.e. ps -lf -U $username), if given
+
