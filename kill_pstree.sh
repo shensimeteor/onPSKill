@@ -1,23 +1,8 @@
 #!/bin/bash
 #usage: kill_pstree.sh [-f] <ps_efl_grep_pattern> [<username>]
 
-#$1: pid; $2: opt (-9/-15 or no $2)
-function kill_pstree_bypid(){
-    pid=$1
-    opt=$2
-    sons="$(ps --ppid $pid |  tr -s " " | sed "s/^ *//g" | sed "/^PID/d" | cut -d " " -f 1)"
-    for son in $sons; do
-        if [ -n "$son" ]; then
-            kill_pstree_bypid $son
-        fi
-    done
-    kill $opt $pid
-}
-
-declare -a tree_node_pid
-tree_node_pid=""
 #print pstree rooted at $1, $2="-"(the indent, used for recursive call)
-#also get the $tree_node_pid (all the pid in the tree)
+#also get the $tree_node_pid(global var) (all the pid in the tree)
 function ls_pstree_bypid(){
     local xpid xcmd xtim xstt line 
     pid=$1
@@ -37,10 +22,12 @@ function ls_pstree_bypid(){
 }
 
 #$1: ps -elf search pattern; $2: username (if not empty)
+# return: pid
 function search_pself_pattern(){
     local pattern username line
     pattern=$1
     username=$2
+    pid=""
     if [ -z "$username" ]; then
         pid="$(ps -elf | grep "$pattern" | grep -v grep | grep -v kill_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 )"
     else
@@ -49,6 +36,7 @@ function search_pself_pattern(){
     echo $pid
 }
 
+#main code
 narg=$#
 if [ $narg -eq 1  ]; then
     pattern=$1
@@ -73,24 +61,29 @@ fi
 
 #first, grep the ps
 process_id="$(search_pself_pattern "$pattern" $username)"
+if [ -z "$process_id" ]; then
+    echo "No process found based, EXIT without killing"
+    exit 
+fi
 if [ $prompt -eq 1 ]; then
-    echo "You will kill these process: "
+    echo "You will kill these root process: "
     ps -lf | head -n 1
     for pid in $process_id; do
         ps -lf -p $pid | tail -n 1
     done
     echo 
-    read -p "to continue, press Y/y, to escape press other key" ans
+    read -p "to continue view its tree (won't kill now), press Y/y, to escape press other key:  " ans
     if [ "$ans" == "Y" ] || [ "$ans" == "y" ]; then
         echo
         echo "You will kill these ps_tree: "
         pids=""
         for pid in $process_id; do
             echo "-------------------"
+            tree_node_pid=""
             ls_pstree_bypid $pid
             pids="$pids $tree_node_pid"
         done
-        read -p "to continue, press Y/y, to escape press other key" ans
+        read -p "to continue KILL these trees, press Y/y, to escape press other key:  " ans
         if [ "$ans" == "Y" ] || [ "$ans" == "y" ]; then
             for pid in $pids; do
                 echo "kill $pid"
@@ -100,7 +93,23 @@ if [ $prompt -eq 1 ]; then
     else
         exit
     fi
-    
+else #no prompt
+    echo "You will kill these root process: "
+    ps -lf | head -n 1
+    for pid in $process_id; do
+        ps -lf -p $pid | tail -n 1
+    done
+    for pid in $process_id; do
+        echo "-------------------"
+        tree_node_pid=""
+        ls_pstree_bypid $pid
+        pids="$pids $tree_node_pid"
+    done
+    echo "-------------------"
+    for pid in $pids; do
+        echo "kill $pid"
+        kill $pid
+    done
+fi    
 
-fi
 
