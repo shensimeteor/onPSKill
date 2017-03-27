@@ -29,7 +29,7 @@ function search_pself_pattern(){
     username=$2
     pid=""
     if [ -z "$username" ]; then
-        pid="$(ps -elf | grep "$pattern" | grep -v grep | grep -v kill_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 )"
+        pid="$(ps -elf | grep "$pattern" | grep -v grep | grep -v kill9_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 )"
     else
         pid="$(ps -lf -U $username | grep "$pattern" | grep -v grep | grep -v kill_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 2>/dev/null)"
     fi
@@ -87,7 +87,7 @@ if [ $prompt -eq 1 ]; then
         if [ "$ans" == "Y" ] || [ "$ans" == "y" ]; then
             for pid in $pids; do
                 echo "kill $pid"
-                kill $pid
+                kill -9 $pid
                 ec=$?
                 if [ $ec -ne 0 ]; then
                     exit_code=$ec
@@ -112,7 +112,7 @@ else #no prompt
     echo "-------------------"
     for pid in $pids; do
         echo "kill $pid"
-        kill $pid
+        kill -9 $pid
        ec=$?
        if [ $ec -ne 0 ]; then
            exit_code=$ec
