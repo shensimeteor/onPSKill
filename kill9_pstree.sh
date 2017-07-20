@@ -29,9 +29,9 @@ function search_pself_pattern(){
     username=$2
     pid=""
     if [ -z "$username" ]; then
-        pid="$(ps -elf | grep "$pattern" | grep -v grep | grep -v kill9_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 )"
+        pid="$(ps -elf | grep "$pattern" | grep -v grep | grep -v kill9_pstree | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 )"
     else
-        pid="$(ps -lf -U $username | grep "$pattern" | grep -v grep | grep -v kill_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 2>/dev/null)"
+        pid="$(ps -lf -U $username | grep "$pattern" | grep -v grep | grep -v kill9_pstree.sh | tr -s ' ' | sed 's/^ *//g' | cut -d ' ' -f 4 2>/dev/null)"
     fi
     echo $pid
 }
